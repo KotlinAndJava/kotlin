@@ -20,6 +20,7 @@ import com.sun.tools.javac.code.BoundKind
 import com.sun.tools.javac.tree.JCTree
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.codegen.state.updateArgumentModeFromAnnotations
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
@@ -39,12 +40,29 @@ private typealias SubstitutionMap = Map<String, Pair<KtTypeParameter, KtTypeProj
 
 class ErrorTypeCorrector(
         private val converter: ClassFileToSourceStubConverter,
-        private val typeKind: TypeKind
+        private val typeKind: TypeKind,
+        file: KtFile
 ) {
     private val defaultType = converter.treeMaker.FqName(Object::class.java.name)
 
     private val bindingContext get() = converter.kaptContext.bindingContext
     private val treeMaker get() = converter.treeMaker
+
+    private val aliasedImports = mutableMapOf<String, JCTree.JCExpression>().apply {
+        for (importDirective in file.importDirectives) {
+            if (importDirective.isAllUnder) continue
+
+            val aliasName = importDirective.aliasName ?: continue
+            val importedFqName = importDirective.importedFqName ?: continue
+
+            val importedReference = getReferenceExpression(importDirective.importedReference)
+                    ?.let { bindingContext[BindingContext.REFERENCE_TARGET, it] }
+
+            if (importedReference is CallableDescriptor) continue
+
+            this[aliasName] = treeMaker.FqName(importedFqName)
+        }
+    }
 
     enum class TypeKind {
         RETURN_TYPE, METHOD_PARAMETER_TYPE
@@ -87,9 +105,13 @@ class ErrorTypeCorrector(
             val referencedName = type.referencedName ?: return defaultType
             val qualifier = type.qualifier
 
-            if (qualifier == null && referencedName in substitutions) {
-                val (typeParameter, projection) = substitutions.getValue(referencedName)
-                return convertTypeProjection(projection, typeParameter.variance, emptyMap())
+            if (qualifier == null) {
+                if (referencedName in substitutions) {
+                    val (typeParameter, projection) = substitutions.getValue(referencedName)
+                    return convertTypeProjection(projection, typeParameter.variance, emptyMap())
+                }
+
+                aliasedImports[referencedName]?.let { return it }
             }
 
             baseExpression = when {
@@ -155,6 +177,10 @@ class ErrorTypeCorrector(
                 treeMaker.Wildcard(treeMaker.TypeBoundKind(BoundKind.EXTENDS), argumentExpression)
             else -> argumentExpression // invariant
         }
+    }
+
+    private fun convertTypeProjection() {
+
     }
 
     private fun convertFunctionType(type: KtFunctionType, substitutions: SubstitutionMap): JCTree.JCExpression {
