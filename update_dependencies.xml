@@ -42,18 +42,6 @@
 
     <target name="fetch-third-party" depends="make-dependency-dirs">
 
-        <!-- Android SDK platform -->
-        <ant antfile="download_android_sdk.xml" target="download_android_sdk"/>
-
-        <delete file="${dependencies}/android.jar" failonerror="false"/>
-        <get src="http://dl-ssl.google.com/android/repository/android-19_r02.zip"
-             dest="${dependencies}/download/android-sdk.zip" usetimestamp="true"/>
-        <unzip src="${dependencies}/download/android-sdk.zip" dest="${dependencies}">
-            <patternset>
-                <include name="**/android.jar"/>
-            </patternset>
-            <mapper type="flatten"/>
-        </unzip>
     </target>
 
     <!--

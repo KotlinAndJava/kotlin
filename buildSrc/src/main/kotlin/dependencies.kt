@@ -2,10 +2,12 @@
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.kotlin.dsl.DependencyHandlerScope
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.project
 import java.io.File
@@ -97,3 +99,17 @@ fun firstFromJavaHomeThatExists(vararg paths: String): File? =
         paths.mapNotNull { File(jreHome, it).takeIf { it.exists() } }.firstOrNull()
 
 fun toolsJar(): File? = firstFromJavaHomeThatExists("../lib/tools.jar", "../Classes/tools.jar")
+
+private fun Project.addConfigurationAndDependency(name: String, dependency: DependencyHandler.() -> Dependency): Configuration =
+        configurations.findByName(name) // assuming that dependency is already added too
+        ?: configurations.create(name).also {
+            DependencyHandlerScope(dependencies).let { dh -> dh.add(name, dh.dependency()) }
+        }
+
+fun Project.androidSdkPath(): String =
+        addConfigurationAndDependency("androidSdk") { project(":custom-dependencies:android-sdk", configuration = "androidSdk") }
+                .singleFile.canonicalPath
+
+fun Project.androidJarPath(): String =
+        addConfigurationAndDependency("androidJar") { project(":custom-dependencies:android-sdk", configuration = "androidJar") }
+                .singleFile.canonicalPath
