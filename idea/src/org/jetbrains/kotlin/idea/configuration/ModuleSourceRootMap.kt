@@ -70,6 +70,14 @@ class ModuleSourceRootMap(val modules: Collection<Module>) {
 fun Module.toModuleGroup() = ModuleSourceRootMap(project).toModuleGroup(this)
 fun Module.getWholeModuleGroup() = ModuleSourceRootMap(project).getWholeModuleGroup(this)
 
+fun Module.findMainModule(): Module {
+    val moduleGroup = ModuleSourceRootMap(project).getWholeModuleGroup(this)
+    val modules = moduleGroup.allModules()
+    val mainModules = modules.firstOrNull { it.name.endsWith("_main") }
+
+    return mainModules ?: moduleGroup.baseModule
+}
+
 private fun isSourceRootPrefix(externalId: String, previousModuleExternalId: String)
         = externalId.length < previousModuleExternalId.length && previousModuleExternalId.startsWith(externalId)
 
