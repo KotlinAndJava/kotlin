@@ -56,7 +56,7 @@ sourceSets {
 }
 
 tasks.withType<KotlinCompile> {
-    dependsOn(":custom-dependencies:android-sdk:copyDxJar")
+    dependsOn(":custom-dependencies:android-sdk:extractDxJar")
 }
 
 projectTest {

@@ -62,7 +62,7 @@ val clean by task<Delete> {
     delete(buildDir)
 }
 
-val copyAndroidJar by task<Copy> {
+val extractAndroidJar by task<Copy> {
     configurations.add(androidJar)
     afterEvaluate {
         from(zipTree(androidPlatform.singleFile).matching { include("**/android.jar") }.files.first())
@@ -70,7 +70,7 @@ val copyAndroidJar by task<Copy> {
     into(libsDestDir)
 }
 
-val copyDxJar by task<Copy> {
+val extractDxJar by task<Copy> {
     configurations.add(dxJar)
     afterEvaluate {
         from(zipTree(buildTools.singleFile).matching { include("**/dx.jar") }.files.first())
@@ -83,9 +83,9 @@ artifacts.add(androidSdk.name, file("$sdkDestDir")) {
 }
 
 artifacts.add(androidJar.name, file("$libsDestDir/android.jar")) {
-    builtBy(copyAndroidJar)
+    builtBy(extractAndroidJar)
 }
 
 artifacts.add(dxJar.name, file("$libsDestDir/dx.jar")) {
-    builtBy(copyDxJar)
+    builtBy(extractDxJar)
 }

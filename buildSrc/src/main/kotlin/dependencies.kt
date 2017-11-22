@@ -2,8 +2,8 @@
 
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
@@ -100,16 +100,18 @@ fun firstFromJavaHomeThatExists(vararg paths: String): File? =
 
 fun toolsJar(): File? = firstFromJavaHomeThatExists("../lib/tools.jar", "../Classes/tools.jar")
 
-private fun Project.addConfigurationAndDependency(name: String, dependency: DependencyHandler.() -> Dependency): Configuration =
-        configurations.findByName(name) // assuming that dependency is already added too
-        ?: configurations.create(name).also {
-            DependencyHandlerScope(dependencies).let { dh -> dh.add(name, dh.dependency()) }
-        }
+private fun Task.addConfigurationAndProjectDependency(name: String, sourceProject: String, sourceConfiguration: String, sourceTask: String): Configuration {
+    dependsOn("$sourceProject:$sourceTask")
+    return project.configurations.findByName(name) // assuming that dependency is already added too
+           ?: project.configurations.create(name).also {
+                      DependencyHandlerScope(project.dependencies).let { dh -> dh.add(name, dh.project(sourceProject, configuration = sourceConfiguration)) }
+                 }
+}
 
-fun Project.androidSdkPath(): String =
-        addConfigurationAndDependency("androidSdk") { project(":custom-dependencies:android-sdk", configuration = "androidSdk") }
+fun Task.androidSdkPath(): String =
+        addConfigurationAndProjectDependency("androidSdk", ":custom-dependencies:android-sdk", "androidSdk", "prepareSdk")
                 .singleFile.canonicalPath
 
-fun Project.androidJarPath(): String =
-        addConfigurationAndDependency("androidJar") { project(":custom-dependencies:android-sdk", configuration = "androidJar") }
+fun Task.androidJarPath(): String =
+        addConfigurationAndProjectDependency("androidJar", ":custom-dependencies:android-sdk", "androidJar", "extractAndroidJar")
                 .singleFile.canonicalPath
