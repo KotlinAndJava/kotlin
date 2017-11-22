@@ -297,6 +297,27 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
         }
     }
 
+    fun testVarargWithSpreadComplex() {
+        myFixture.addClass("""
+            public @interface Annotation {
+                String[] value();
+            }
+        """.trimIndent())
+
+        myFixture.configureByText("AnnotatedClass.kt", """
+            @Annotation(value = arrayOf(*arrayOf("a", "b"), "c", *arrayOf("d", "e")))
+            open class AnnotatedClass
+        """.trimIndent())
+        myFixture.testHighlighting("Annotation.java", "AnnotatedClass.kt")
+
+        val annotations = myFixture.findClass("AnnotatedClass").expectAnnotations(1)
+        val annotationAttributeVal = annotations.first().findAttributeValue("value") as PsiArrayInitializerMemberValue
+        assertTextAndRange("arrayOf(*arrayOf(\"a\", \"b\"), \"c\", *arrayOf(\"d\", \"e\"))", annotationAttributeVal)
+        for ((i, arg) in listOf("arrayOf(\"a\", \"b\")", "\"c\"", "arrayOf(\"d\", \"e\")").withIndex()) {
+            assertTextAndRange(arg, annotationAttributeVal.initializers[i])
+        }
+    }
+
     fun testVarargWithArrayLiteral() {
         myFixture.addClass("""
             public @interface Annotation {
@@ -306,6 +327,27 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
 
         myFixture.configureByText("AnnotatedClass.kt", """
             @Annotation(value = ["a", "b", "c"])
+            open class AnnotatedClass
+        """.trimIndent())
+        myFixture.testHighlighting("Annotation.java", "AnnotatedClass.kt")
+
+        val annotations = myFixture.findClass("AnnotatedClass").expectAnnotations(1)
+        val annotationAttributeVal = annotations.first().findAttributeValue("value") as PsiArrayInitializerMemberValue
+        assertTextAndRange("[\"a\", \"b\", \"c\"]", annotationAttributeVal)
+        for ((i, arg) in listOf("\"a\"", "\"b\"", "\"c\"").withIndex()) {
+            assertTextAndRange(arg, annotationAttributeVal.initializers[i])
+        }
+    }
+
+    fun testVarargWithArrayLiteralAndSpread() {
+        myFixture.addClass("""
+            public @interface Annotation {
+                String[] value();
+            }
+        """.trimIndent())
+
+        myFixture.configureByText("AnnotatedClass.kt", """
+            @Annotation(*["a", "b", "c"])
             open class AnnotatedClass
         """.trimIndent())
         myFixture.testHighlighting("Annotation.java", "AnnotatedClass.kt")

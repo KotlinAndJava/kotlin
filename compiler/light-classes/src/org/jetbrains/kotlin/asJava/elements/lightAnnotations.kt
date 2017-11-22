@@ -141,7 +141,11 @@ class KtLightAnnotationForSourceEntry(
                 memberValue.unwrapArray(resolvedArgument.arguments)
                 ?: resolvedArgument.arguments.first().asElement().let {
                     (it as? KtValueArgument)
-                            ?.takeIf { it.getSpreadElement() != null || it.getArgumentExpression() is KtCollectionLiteralExpression }
+                            ?.takeIf {
+                                it.getSpreadElement() != null ||
+                                it.getArgumentName() != null ||
+                                it.getArgumentExpression() is KtCollectionLiteralExpression
+                            }
                             ?.getArgumentExpression() ?: it.parent
                 }
 
