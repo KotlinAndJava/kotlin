@@ -267,7 +267,7 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
         val annotations = myFixture.findClass("MyAnnotated").expectAnnotations(1)
         annotations[0].let { annotation ->
             val annotationAttributeVal = annotation.findAttributeValue("value") as PsiElement
-            assertTextAndRange("@Outer(Inner())", annotationAttributeVal)
+            assertTextAndRange("(Inner())", annotationAttributeVal)
             annotationAttributeVal as PsiArrayInitializerMemberValue
             annotationAttributeVal.initializers[0].let { innerAnnotationAttributeVal ->
                 assertTextAndRange("Inner()", innerAnnotationAttributeVal)
@@ -291,7 +291,7 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
 
         val annotations = myFixture.findClass("AnnotatedClass").expectAnnotations(1)
         val annotationAttributeVal = annotations.first().findAttributeValue("value") as PsiArrayInitializerMemberValue
-
+        assertTextAndRange("arrayOf(\"a\", \"b\", \"c\")", annotationAttributeVal)
         for ((i, arg) in listOf("\"a\"", "\"b\"", "\"c\"").withIndex()) {
             assertTextAndRange(arg, annotationAttributeVal.initializers[i])
         }
@@ -327,7 +327,7 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
         }
         annotations[1].let { annotation ->
             val annotationAttributeVal = annotation.findAttributeValue("value") as PsiElement
-            assertTextAndRange("@RAnno(\"1\")", annotationAttributeVal)
+            assertTextAndRange("(\"1\")", annotationAttributeVal)
             annotationAttributeVal as PsiArrayInitializerMemberValue
             annotationAttributeVal.initializers[0].let { innerAnnotationAttributeVal ->
                 assertTextAndRange("\"1\"", innerAnnotationAttributeVal)
@@ -335,7 +335,7 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
         }
         annotations[2].let { annotation ->
             val annotationAttributeVal = annotation.findAttributeValue("value") as PsiElement
-            assertTextAndRange("@RAnno(\"1\", \"2\")", annotationAttributeVal)
+            assertTextAndRange("(\"1\", \"2\")", annotationAttributeVal)
             annotationAttributeVal as PsiArrayInitializerMemberValue
             annotationAttributeVal.initializers[0].let { innerAnnotationAttributeVal ->
                 assertTextAndRange("\"1\"", innerAnnotationAttributeVal)
@@ -403,7 +403,7 @@ class KtLightAnnotationTest : KotlinLightCodeInsightFixtureTestCase() {
     }
 
     private fun assertTextAndRange(expected: String, psiElement: PsiElement) {
-        TestCase.assertEquals(expected, psiElement.text)
+        TestCase.assertEquals("mismatch for $psiElement of ${psiElement.javaClass}", expected, psiElement.text)
         TestCase.assertEquals(expected, psiElement.textRange.substring(psiElement.containingFile.text))
     }
 
