@@ -189,7 +189,11 @@ class KtLightAnnotationForSourceEntry(
                 wrapAnnotationValue(memberValue, this, {
                     originalExpression.let { ktOrigin ->
                         when (ktOrigin) {
-                            is KtCallElement -> ktOrigin.valueArguments.getOrNull(i)?.getArgumentExpression()
+                            is KtCallElement -> (ktOrigin.valueArguments.singleOrNull()
+                                                         ?.takeIf { it.getSpreadElement() != null }
+                                                         ?.let { it.getArgumentExpression() as? KtCallElement }
+                                                         ?.valueArguments
+                                                 ?: ktOrigin.valueArguments).getOrNull(i)?.getArgumentExpression()
                             is KtCollectionLiteralExpression -> ktOrigin.getInnerExpressions().getOrNull(i)
                             else -> null
                         }.also {
