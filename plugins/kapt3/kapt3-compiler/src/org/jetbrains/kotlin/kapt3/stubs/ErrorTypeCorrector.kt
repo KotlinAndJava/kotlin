@@ -20,10 +20,7 @@ import com.sun.tools.javac.code.BoundKind
 import com.sun.tools.javac.tree.JCTree
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
 import org.jetbrains.kotlin.codegen.state.updateArgumentModeFromAnnotations
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
-import org.jetbrains.kotlin.descriptors.TypeAliasDescriptor
-import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.kapt3.javac.kaptError
 import org.jetbrains.kotlin.kapt3.mapJList
 import org.jetbrains.kotlin.kapt3.mapJListIndexed
@@ -96,7 +93,7 @@ class ErrorTypeCorrector(
             val typeAlias = target.source.getPsi() as? KtTypeAlias
             val actualType = typeAlias?.getTypeReference() ?: return convert(target.expandedType)
             return convert(actualType, typeAlias.getSubstitutions(type))
-        } else if (target is ClassifierDescriptor && target !is TypeParameterDescriptor) {
+        } else if (target is ClassDescriptor) {
             // We only get here if some type were an error type. In other words, 'type' is either an error type or its argument,
             // so it's impossible it to be unboxed primitive.
             val asmType = converter.kaptContext.generationState.typeMapper.mapType(target.defaultType, null, TypeMappingMode.GENERIC_ARGUMENT)
