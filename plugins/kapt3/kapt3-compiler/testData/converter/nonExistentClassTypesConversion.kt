@@ -11,6 +11,9 @@ typealias Coocoo = ABC
 typealias Coocoo2<T> = ABC<T>
 typealias Coocoo3<X> = ABC<String, X>
 
+typealias Nested1 = ABC
+typealias Nested2 = Nested1
+
 @Anno(Blah::class, arrayOf(NoFoo1::class, NoBar1::class), [NoFoo2::class, String::class], Boolean::class, NoBar3::class)
 class Test<G> {
     lateinit var a: ABC
@@ -32,6 +35,8 @@ class Test<G> {
     lateinit var coocoo21: Coocoo2<Coocoo>
     lateinit var coocoo3: Coocoo3<String>
     lateinit var coocoo31: Coocoo3<Coocoo2<Coocoo>>
+
+    lateinit var nested: Nested2
 
     val m = ABC()
     val n = "".toString()
