@@ -629,7 +629,7 @@ class ClassFileToSourceStubConverter(
         if (type?.containsErrorTypes() == true) {
             val typeFromSource = ktTypeProvider()?.typeElement
             val ktFile = typeFromSource?.containingKtFile
-            if (typeFromSource != null && ktFile != null) {
+            if (ktFile != null) {
                 @Suppress("UNCHECKED_CAST")
                 return ErrorTypeCorrector(this, kind, ktFile).convert(typeFromSource, emptyMap()) as T
             }
