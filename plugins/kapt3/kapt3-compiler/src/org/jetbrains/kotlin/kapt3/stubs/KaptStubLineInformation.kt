@@ -52,7 +52,7 @@ class KaptStubLineInformation {
                 is JCTree.JCClassDecl -> {
                     val className = parent.simpleName.toString()
                     val newName = if (currentName.isEmpty()) className else currentName + "#" + className
-                    if (declaration == parent) {
+                    if (declaration === parent) {
                         return newName
                     }
 
@@ -63,7 +63,7 @@ class KaptStubLineInformation {
                     return null
                 }
                 is JCTree.JCVariableDecl -> {
-                    if (declaration == parent) {
+                    if (declaration === parent) {
                         return currentName + "#" + parent.name.toString()
                     }
 
@@ -71,7 +71,7 @@ class KaptStubLineInformation {
                 }
                 is JCTree.JCMethodDecl -> {
                     // We don't need to process local declarations here as kapt does not support locals entirely.
-                    if (declaration == parent) {
+                    if (declaration === parent) {
                         val nameAndSignature = getAnnotationValue(KAPT_SIGNATURE_ANNOTATION_FQNAME, parent.mods) ?: return null
                         return currentName + "#" + nameAndSignature
                     }
@@ -121,7 +121,7 @@ class KaptStubLineInformation {
 
         declaration.accept(object : TreeScanner() {
             override fun scan(tree: JCTree?) {
-                if (!found && tree == this@isLocatedInside) {
+                if (!found && tree === this@isLocatedInside) {
                     found = true
                 }
 
